@@ -18,8 +18,7 @@ class TestDeleteOldContact {
             RecordTypeId = '0123Y000000pHGPQA2'
          );
         
-        
-        //just make some with jobs and active hours or with cases to test now. 
+
         Contact v1 = new Contact
         (
             FirstName ='Test2',
@@ -32,6 +31,21 @@ class TestDeleteOldContact {
             gw_volunteers__volunteer_status__c ='Active',
             volunteer_progress__c ='Matched to a client',
             DBS_Returned_Date__c=Date.newInstance(2012,01,01),
+            RecordTypeId = '0123Y000000pHGKQA2' 
+        );
+        
+          Contact v2 = new Contact
+        (
+            FirstName ='Test4',
+            LastName ='Test4',
+            Contact_Ethnicity__c ='Prefer not to say',
+            Relationship_Status__c ='Prefer not to say',
+            Gender__c='Prefer not to say',
+            LeadSource='Other',
+            for_campaign__c='7013N000000NjfNQAS',
+            gw_volunteers__volunteer_status__c ='Inactive',
+            volunteer_progress__c ='Welfare review completed',
+            DBS_Returned_Date__c=Date.newInstance(2020,01,01),
             RecordTypeId = '0123Y000000pHGKQA2' 
         );
         
@@ -49,6 +63,7 @@ class TestDeleteOldContact {
         insert c1;
         insert c2;
         insert v1;
+        insert v2;
         Test.setCreatedDate(c1.Id, oldDt);
         Test.setCreatedDate(v1.Id, oldDt);
         Test.setCreatedDate(c2.id,oldDt);
@@ -78,9 +93,9 @@ class TestDeleteOldContact {
             volunteer__c = v1.id,
             client__c=c2.id,
             gw_volunteers__Campaign__c='7013N000000NjfNQAS',
-            progress__c ='Befriending assignment started',
+            progress__c ='Befriending assignment ended',
             gw_volunteers__Inactive__c = false,
-            gw_volunteers__Ongoing__c=true
+            gw_volunteers__Ongoing__c=false
         ); 
         
         insert job1;
@@ -142,18 +157,24 @@ class TestDeleteOldContact {
         insert case1;
         insert case2;
         Test.setCreatedDate(case2.id,oldDt);
+        Test.setCreatedDate(case1.id,oldDt);
         
         
-        List<Contact> oldConsBefore = [select id from contact where createddate<2015-01-01T00:00:00.000+0000];
+        List<Contact> cons = [select id, firstname from contact];
+        list<Contact> oldCons =[select id from contact where createddate<2015-01-01T00:00:00.000+0000];
+        System.assertEquals(4,cons.size());
+        System.assertEquals(3,oldCons.size());
+        
         Test.startTest();
-        
         //schedule
         String jobId = System.schedule('DeleteOldContact', '0 0 0 14 6 ? 2080', 
                                        new DeleteOldContact());
-        
-        
         Test.stopTest();
         
+        cons = [select id, firstname from contact];
+        system.assertEquals(1,cons.size());
+        system.assertEquals(cons[0].firstname,'Test4');
+        //test 4 is the only one that should not be deleted.  c1,c2,v1 are all old contacts that meet requirement for deletion for either no case or job that is inactive or has no recent hours
     }
     
 

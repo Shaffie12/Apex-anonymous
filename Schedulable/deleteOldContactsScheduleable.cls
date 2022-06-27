@@ -23,7 +23,7 @@ global class DeleteOldContact Implements Schedulable
                 Boolean hasActiveJob =false;
                 for(GW_volunteers__volunteer_job__c j: c.volunteer_jobs__r)
                 {
-                    if(!(j.status_of_job__c.equals('Inactive')) || (j.Last_completed_hours__c.date()> boundary_date) )
+                    if(!(j.status_of_job__c.equals('Inactive')) && (j.Last_completed_hours__c.date()> boundary_date) ) //this line matters in terms of how strict the filter is.  Could make it an OR
                     {
                         hasActiveJob=true;
                         break;
